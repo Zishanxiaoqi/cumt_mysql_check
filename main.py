@@ -15,7 +15,7 @@ src_encoding = 'gbk'
 dest_encoding = 'utf-8'
 format = ""
 answer_path = "answer"
-passward = int(input('请输入mysql密码'))
+passward = input('请输入mysql密码')
 loacal_port = "3306"
 mode = int(input('请输入mode(0为save,保存结果,1为drop,不保留结果)')) #0为save,保存结果,1为drop,不保留结果
 
