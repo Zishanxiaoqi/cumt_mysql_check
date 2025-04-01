@@ -17,7 +17,11 @@ format = ""
 answer_path = "answer"
 passward = input('请输入mysql密码')
 loacal_port = "3306"
+<<<<<<< HEAD
 mode = int(input('请输入mode(0为save,保存结果,1为drop,不保留结果)')) #0为save,保存结果,1为drop,不保留结果
+=======
+mode = 0 #0为save,保存结果,1为drop,不保留结果,3为生成答案
+>>>>>>> 86126fe (更新了新的答案)
 
 def check_encoding(path,sample_size):
     with open(path, 'rb') as f:
@@ -48,29 +52,44 @@ os.makedirs("test_convert",exist_ok=True)
 
 
 # 转换编码
-for i in range (1,16):
+for i in range (1,21):
     path = os.path.join("test",f"{format}{i}.sql")
     if i == 1:
         encoding = check_encoding(path,1024)
     path_save = os.path.join("test_convert",f"{format}{i}.sql")
     convert_encoding(path,path_save,encoding,dest_encoding)
 
-for i in range (1,16):
+for i in range (1,21):
     path = os.path.join("test_convert",f"{format}{i}.sql")
     resulf_df = read_mysql(path)
-    path_answer = os.path.join("answer",f"T{i}.csv")
-    answer_df = pd.read_csv(path_answer,encoding=dest_encoding)
-    
-    df1_sorted = answer_df.sort_values(by=list(answer_df.columns)).reset_index(drop=True)
-    df2_sorted = resulf_df.sort_values(by=list(resulf_df.columns)).reset_index(drop=True)
-    if df1_sorted.equals(df2_sorted):
-        print(f"T{i} pass")
-    else:
-        print(f"T{i} fail")
+    if(mode!=3):
+        path_answer = os.path.join("answer",f"T{i}.csv")
+        answer_df = pd.read_csv(path_answer,encoding=dest_encoding)
+        
+        df1_sorted = answer_df.sort_values(by=list(answer_df.columns)).reset_index(drop=True)
+        df2_sorted = resulf_df.sort_values(by=list(resulf_df.columns)).reset_index(drop=True)
+        
+        df1_sorted.apply(lambda x: x.strip() if isinstance(x, str) else x)
+        df2_sorted.apply(lambda x: x.strip() if isinstance(x, str) else x)
+        
+        
+                
+        for x in df1_sorted.columns:
+            if x in df2_sorted.columns:
+                df2_sorted[x] = df2_sorted[x].astype(df1_sorted[x].dtype)
+        
+        if i == 18:
+            df2_sorted["总绩点"] = df2_sorted["总绩点"].apply(lambda x:round(x,2))
+           
+        if df1_sorted.equals(df2_sorted):
+            print(f"T{i} pass")
+        else:
+            print(f"T{i} fail")
     resulf_df = resulf_df.to_csv(f"test_result/T{i}.csv",index=False,encoding=dest_encoding)
+    
+shutil.rmtree("test_convert")
 
-if mode:
-    shutil.rmtree("test_convert")
+if mode == 1:
     shutil.rmtree("test_result")
 
 input("运行完毕，按任意键退出")
